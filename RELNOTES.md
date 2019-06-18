@@ -19,6 +19,9 @@ iperf 3.7 2019-06-xx
 
   * Failed authentication doesn't count for --one-off (#864/#877).
 
+  * Several memory leaks related to authenticated use were fixed
+    (#881/#888).
+
   * The delay for tearing down the control connection for the default
     timed tests has been increased, to more gracefully handle
     high-delay paths (#751/#859).
