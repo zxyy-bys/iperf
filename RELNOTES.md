@@ -1,7 +1,7 @@
 iperf3 Release Notes
 ====================
 
-iperf 3.7 2019-06-xx
+iperf 3.7 2019-06-21
 --------------------
 
 * Notable user-visible changes
