@@ -1017,7 +1017,7 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
                 break;
             case 'w':
                 // XXX: This is a socket buffer, not specific to TCP
-		// Do sanity checks as double-precision floating point 
+		// Do sanity checks as double-precision floating point
 		// to avoid possible integer overflows.
                 farg = unit_atof(optarg);
                 if (farg > (double) MAX_TCP_BUFFER) {
@@ -1132,7 +1132,7 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
             case 'A':
 #if defined(HAVE_CPU_AFFINITY)
                 test->affinity = strtol(optarg, &endptr, 0);
-                if (endptr == optarg || 
+                if (endptr == optarg ||
 		    test->affinity < 0 || test->affinity > 1024) {
                     i_errno = IEAFFINITY;
                     return -1;
@@ -1249,7 +1249,7 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
     if (test->role == 's' && (client_username || client_rsa_public_key)){
         i_errno = IECLIENTONLY;
         return -1;
-    } else if (test->role == 'c' && (client_username || client_rsa_public_key) && 
+    } else if (test->role == 'c' && (client_username || client_rsa_public_key) &&
         !(client_username && client_rsa_public_key)) {
         i_errno = IESETCLIENTAUTH;
         return -1;
@@ -1262,7 +1262,7 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
              client_password = strdup(client_password);
         else if (iperf_getpass(&client_password, &s, stdin) < 0){
             return -1;
-        } 
+        }
 
         if (strlen(client_username) > 20 || strlen(client_password) > 20){
             i_errno = IESETCLIENTAUTH;
@@ -1284,7 +1284,7 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
     if (test->role == 'c' && (server_rsa_private_key || test->server_authorized_users)){
         i_errno = IESERVERONLY;
         return -1;
-    } else if (test->role == 's' && (server_rsa_private_key || test->server_authorized_users) && 
+    } else if (test->role == 's' && (server_rsa_private_key || test->server_authorized_users) &&
         !(server_rsa_private_key && test->server_authorized_users)) {
          i_errno = IESETSERVERAUTH;
         return -1;
@@ -1307,7 +1307,7 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
 	else
 	    blksize = DEFAULT_TCP_BLKSIZE;
     }
-    if ((test->protocol->id != Pudp && blksize <= 0) 
+    if ((test->protocol->id != Pudp && blksize <= 0)
 	|| blksize > MAX_BLOCKSIZE) {
 	i_errno = IEBLOCKSIZE;
 	return -1;
@@ -2277,7 +2277,7 @@ protocol_new(void)
 void
 protocol_free(struct protocol *proto)
 {
-    free(proto); 
+    free(proto);
 }
 
 /**************************************************************************/
@@ -2472,7 +2472,7 @@ iperf_free_test(struct iperf_test *test)
     /* Free protocol list */
     while (!SLIST_EMPTY(&test->protocols)) {
         prot = SLIST_FIRST(&test->protocols);
-        SLIST_REMOVE_HEAD(&test->protocols, protocols);        
+        SLIST_REMOVE_HEAD(&test->protocols, protocols);
         free(prot);
     }
 
@@ -2560,7 +2560,7 @@ iperf_reset_test(struct iperf_test *test)
     CPU_ZERO(&test->cpumask);
 #endif /* HAVE_CPUSET_SETAFFINITY */
     test->state = 0;
-    
+
     test->ctrl_sck = -1;
     test->prot_listener = -1;
 
@@ -2578,7 +2578,7 @@ iperf_reset_test(struct iperf_test *test)
 
     FD_ZERO(&test->read_set);
     FD_ZERO(&test->write_set);
-    
+
     test->num_streams = 1;
     test->settings->socket_bufsize = 0;
     test->settings->blksize = DEFAULT_TCP_BLKSIZE;
@@ -2680,7 +2680,7 @@ iperf_stats_callback(struct iperf_test *test)
     SLIST_FOREACH(sp, &test->streams, streams) {
         rp = sp->result;
 	temp.bytes_transferred = sp->sender ? rp->bytes_sent_this_interval : rp->bytes_received_this_interval;
-     
+
 	irp = TAILQ_LAST(&rp->interval_results, irlisthead);
         /* result->end_time contains timestamp of previous interval */
         if ( irp != NULL ) /* not the 1st interval */
@@ -2705,7 +2705,7 @@ iperf_stats_callback(struct iperf_test *test)
 		    if (temp.snd_cwnd > rp->stream_max_snd_cwnd) {
 			rp->stream_max_snd_cwnd = temp.snd_cwnd;
 		    }
-		    
+
 		    temp.rtt = get_rtt(&temp);
 		    if (temp.rtt > rp->stream_max_rtt) {
 			rp->stream_max_rtt = temp.rtt;
@@ -3438,8 +3438,8 @@ iperf_print_results(struct iperf_test *test)
 
 /**
  * Main report-printing callback.
- * Prints results either during a test (interval report only) or 
- * after the entire test has been run (last interval report plus 
+ * Prints results either during a test (interval report only) or
+ * after the entire test has been run (last interval report plus
  * overall summary).
  */
 void
@@ -3456,7 +3456,7 @@ iperf_reporter_callback(struct iperf_test *test)
             iperf_print_intermediate(test);
             iperf_print_results(test);
             break;
-    } 
+    }
 
 }
 
@@ -3534,12 +3534,12 @@ print_interval_results(struct iperf_test *test, struct iperf_stream *sp, cJSON *
 	bandwidth = 0.0;
     }
     unit_snprintf(nbuf, UNIT_LEN, bandwidth, test->settings->unit_format);
-    
+
     iperf_time_diff(&sp->result->start_time, &irp->interval_start_time, &temp_time);
     st = iperf_time_in_secs(&temp_time);
     iperf_time_diff(&sp->result->start_time, &irp->interval_end_time, &temp_time);
     et = iperf_time_in_secs(&temp_time);
-    
+
     if (test->protocol->id == Ptcp || test->protocol->id == Psctp) {
 	if (test->sender_has_retransmits == 1 && sp->sender) {
 	    /* Interval, TCP with retransmits. */
@@ -3588,7 +3588,8 @@ iperf_free_stream(struct iperf_stream *sp)
     struct iperf_interval_results *irp, *nirp;
 
     /* XXX: need to free interval list too! */
-    munmap(sp->buffer, sp->test->settings->blksize);
+    /* munmap(sp->buffer, sp->test->settings->blksize); */
+    free(sp->buffer);
     close(sp->buffer_fd);
     if (sp->diskfile_fd >= 0)
 	close(sp->diskfile_fd);
@@ -3629,6 +3630,7 @@ iperf_new_stream(struct iperf_test *test, int s, int sender)
 
     sp = (struct iperf_stream *) malloc(sizeof(struct iperf_stream));
     if (!sp) {
+        fprintf(stderr,"%s - %s %d: error\n",__FILE__, __FUNCTION__, __LINE__);
         i_errno = IECREATESTREAM;
         return NULL;
     }
@@ -3641,35 +3643,41 @@ iperf_new_stream(struct iperf_test *test, int s, int sender)
     sp->result = (struct iperf_stream_result *) malloc(sizeof(struct iperf_stream_result));
     if (!sp->result) {
         free(sp);
+        fprintf(stderr,"%s - %s %d: error\n",__FILE__, __FUNCTION__, __LINE__);
         i_errno = IECREATESTREAM;
         return NULL;
     }
 
     memset(sp->result, 0, sizeof(struct iperf_stream_result));
     TAILQ_INIT(&sp->result->interval_results);
-    
+
     /* Create and randomize the buffer */
     sp->buffer_fd = mkstemp(template);
     if (sp->buffer_fd == -1) {
+        fprintf(stderr,"%s - %s %d: error\n",__FILE__, __FUNCTION__, __LINE__);
         i_errno = IECREATESTREAM;
         free(sp->result);
         free(sp);
         return NULL;
     }
     if (unlink(template) < 0) {
+        fprintf(stderr,"%s - %s %d: error\n",__FILE__, __FUNCTION__, __LINE__);
         i_errno = IECREATESTREAM;
         free(sp->result);
         free(sp);
         return NULL;
     }
     if (ftruncate(sp->buffer_fd, test->settings->blksize) < 0) {
+        fprintf(stderr,"%s - %s %d: error\n",__FILE__, __FUNCTION__, __LINE__);
         i_errno = IECREATESTREAM;
         free(sp->result);
         free(sp);
         return NULL;
     }
-    sp->buffer = (char *) mmap(NULL, test->settings->blksize, PROT_READ|PROT_WRITE, MAP_PRIVATE, sp->buffer_fd, 0);
+    /* sp->buffer = (char *) mmap(NULL, test->settings->blksize, PROT_READ|PROT_WRITE, MAP_PRIVATE, sp->buffer_fd, 0); */
+    sp->buffer = (char *) malloc(test->settings->blksize * sizeof(char));
     if (sp->buffer == MAP_FAILED) {
+        fprintf(stderr,"%s - %s %d: error\n",__FILE__, __FUNCTION__, __LINE__);
         i_errno = IECREATESTREAM;
         free(sp->result);
         free(sp);
@@ -3686,7 +3694,8 @@ iperf_new_stream(struct iperf_test *test, int s, int sender)
 	sp->diskfile_fd = open(test->diskfile_name, sender ? O_RDONLY : (O_WRONLY|O_CREAT|O_TRUNC), S_IRUSR|S_IWUSR);
 	if (sp->diskfile_fd == -1) {
 	    i_errno = IEFILE;
-            munmap(sp->buffer, sp->test->settings->blksize);
+            /* munmap(sp->buffer, sp->test->settings->blksize); */
+            free(sp->buffer);
             free(sp->result);
             free(sp);
 	    return NULL;
@@ -3706,7 +3715,8 @@ iperf_new_stream(struct iperf_test *test, int s, int sender)
 
     if ((ret < 0) || (iperf_init_stream(sp, test) < 0)) {
         close(sp->buffer_fd);
-        munmap(sp->buffer, sp->test->settings->blksize);
+        /* munmap(sp->buffer, sp->test->settings->blksize); */
+        free(sp->buffer);
         free(sp->result);
         free(sp);
         return NULL;
@@ -3919,10 +3929,10 @@ iperf_create_pidfile(struct iperf_test *test)
 		}
 	    }
 	}
-	
+
 	/*
-	 * File didn't exist, we couldn't read it, or it didn't correspond to 
-	 * a running process.  Try to create it. 
+	 * File didn't exist, we couldn't read it, or it didn't correspond to
+	 * a running process.  Try to create it.
 	 */
 	fd = open(test->pidfile, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR|S_IWUSR);
 	if (fd < 0) {
