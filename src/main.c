@@ -53,11 +53,18 @@ static int run(struct iperf_test *test);
 
 
 /**************************************************************************/
-int
+    int
 main(int argc, char **argv)
 {
     struct iperf_test *test;
 
+    //vm fork experiments
+    int value = 0;
+
+    while(check_hyper_value(&value) == 0)
+    {
+
+    }
     // XXX: Setting the process affinity requires root on most systems.
     //      Is this a feature we really need?
 #ifdef TEST_PROC_AFFINITY
@@ -73,7 +80,7 @@ main(int argc, char **argv)
         fprintf(stderr, "setting priority to valid level\n");
         rc = setpriority(PRIO_PROCESS, 0, 0);
     }
-    
+
     /* setting the affinity of the process  */
     cpu_set_t cpu_set;
     int affinity = -1;
@@ -115,61 +122,61 @@ main(int argc, char **argv)
 
 static jmp_buf sigend_jmp_buf;
 
-static void __attribute__ ((noreturn))
+    static void __attribute__ ((noreturn))
 sigend_handler(int sig)
 {
     longjmp(sigend_jmp_buf, 1);
 }
 
 /**************************************************************************/
-static int
+    static int
 run(struct iperf_test *test)
 {
     /* Termination signals. */
     iperf_catch_sigend(sigend_handler);
     if (setjmp(sigend_jmp_buf))
-	iperf_got_sigend(test);
+        iperf_got_sigend(test);
 
     /* Ignore SIGPIPE to simplify error handling */
     signal(SIGPIPE, SIG_IGN);
 
     switch (test->role) {
         case 's':
-	    if (test->daemon) {
-		int rc;
-		rc = daemon(0, 0);
-		if (rc < 0) {
-		    i_errno = IEDAEMON;
-		    iperf_errexit(test, "error - %s", iperf_strerror(i_errno));
-		}
-	    }
-	    if (iperf_create_pidfile(test) < 0) {
-		i_errno = IEPIDFILE;
-		iperf_errexit(test, "error - %s", iperf_strerror(i_errno));
-	    }
+            if (test->daemon) {
+                int rc;
+                rc = daemon(0, 0);
+                if (rc < 0) {
+                    i_errno = IEDAEMON;
+                    iperf_errexit(test, "error - %s", iperf_strerror(i_errno));
+                }
+            }
+            if (iperf_create_pidfile(test) < 0) {
+                i_errno = IEPIDFILE;
+                iperf_errexit(test, "error - %s", iperf_strerror(i_errno));
+            }
             for (;;) {
-		int rc;
-		rc = iperf_run_server(test);
-		if (rc < 0) {
-		    iperf_err(test, "error - %s", iperf_strerror(i_errno));
-		    if (rc < -1) {
-		        iperf_errexit(test, "exiting");
-		    }
+                int rc;
+                rc = iperf_run_server(test);
+                if (rc < 0) {
+                    iperf_err(test, "error - %s", iperf_strerror(i_errno));
+                    if (rc < -1) {
+                        iperf_errexit(test, "exiting");
+                    }
                 }
                 iperf_reset_test(test);
                 if (iperf_get_test_one_off(test)) {
-		    /* Authentication failure doesn't count for 1-off test */
-		    if (rc < 0 && i_errno == IEAUTHTEST) {
-			continue;
-		    }
-		    break;
-		}
+                    /* Authentication failure doesn't count for 1-off test */
+                    if (rc < 0 && i_errno == IEAUTHTEST) {
+                        continue;
+                    }
+                    break;
+                }
             }
-	    iperf_delete_pidfile(test);
+            iperf_delete_pidfile(test);
             break;
-	case 'c':
-	    if (iperf_run_client(test) < 0)
-		iperf_errexit(test, "error - %s", iperf_strerror(i_errno));
+        case 'c':
+            if (iperf_run_client(test) < 0)
+                iperf_errexit(test, "error - %s", iperf_strerror(i_errno));
             break;
         default:
             usage();

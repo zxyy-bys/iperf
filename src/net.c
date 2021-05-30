@@ -75,51 +75,51 @@ extern int gerror;
  * timeout_connect adapted from netcat, via OpenBSD and FreeBSD
  * Copyright (c) 2001 Eric Jackson <ericj@monkey.org>
  */
-int
+    int
 timeout_connect(int s, const struct sockaddr *name, socklen_t namelen,
-    int timeout)
+        int timeout)
 {
-	struct pollfd pfd;
-	socklen_t optlen;
-	int flags, optval;
-	int ret;
+    struct pollfd pfd;
+    socklen_t optlen;
+    int flags, optval;
+    int ret;
 
-	flags = 0;
-	if (timeout != -1) {
-		flags = fcntl(s, F_GETFL, 0);
-		if (fcntl(s, F_SETFL, flags | O_NONBLOCK) == -1)
-			return -1;
-	}
+    flags = 0;
+    if (timeout != -1) {
+        flags = fcntl(s, F_GETFL, 0);
+        if (fcntl(s, F_SETFL, flags | O_NONBLOCK) == -1)
+            return -1;
+    }
 
-	if ((ret = connect(s, name, namelen)) != 0 && errno == EINPROGRESS) {
-		pfd.fd = s;
-		pfd.events = POLLOUT;
-		if ((ret = poll(&pfd, 1, timeout)) == 1) {
-			optlen = sizeof(optval);
-			if ((ret = getsockopt(s, SOL_SOCKET, SO_ERROR,
-			    &optval, &optlen)) == 0) {
-				errno = optval;
-				ret = optval == 0 ? 0 : -1;
-			}
-		} else if (ret == 0) {
-			errno = ETIMEDOUT;
-			ret = -1;
-		} else
-			ret = -1;
-	}
+    if ((ret = connect(s, name, namelen)) != 0 && errno == EINPROGRESS) {
+        pfd.fd = s;
+        pfd.events = POLLOUT;
+        if ((ret = poll(&pfd, 1, timeout)) == 1) {
+            optlen = sizeof(optval);
+            if ((ret = getsockopt(s, SOL_SOCKET, SO_ERROR,
+                            &optval, &optlen)) == 0) {
+                errno = optval;
+                ret = optval == 0 ? 0 : -1;
+            }
+        } else if (ret == 0) {
+            errno = ETIMEDOUT;
+            ret = -1;
+        } else
+            ret = -1;
+    }
 
-	if (timeout != -1 && fcntl(s, F_SETFL, flags) == -1)
-		ret = -1;
+    if (timeout != -1 && fcntl(s, F_SETFL, flags) == -1)
+        ret = -1;
 
-	return (ret);
+    return (ret);
 }
 
 /* netdial and netannouce code comes from libtask: http://swtch.com/libtask/
  * Copyright: http://swtch.com/libtask/COPYRIGHT
-*/
+ */
 
 /* make connection to server */
-int
+    int
 netdial(int domain, int proto, char *local, int local_port, char *server, int port, int timeout)
 {
     struct addrinfo hints, *local_res, *server_res;
@@ -141,9 +141,9 @@ netdial(int domain, int proto, char *local, int local_port, char *server, int po
 
     s = socket(server_res->ai_family, proto, 0);
     if (s < 0) {
-	if (local)
-	    freeaddrinfo(local_res);
-	freeaddrinfo(server_res);
+        if (local)
+            freeaddrinfo(local_res);
+        freeaddrinfo(server_res);
         return -1;
     }
 
@@ -156,57 +156,57 @@ netdial(int domain, int proto, char *local, int local_port, char *server, int po
         }
 
         if (bind(s, (struct sockaddr *) local_res->ai_addr, local_res->ai_addrlen) < 0) {
-	    saved_errno = errno;
-	    close(s);
-	    freeaddrinfo(local_res);
-	    freeaddrinfo(server_res);
-	    errno = saved_errno;
+            saved_errno = errno;
+            close(s);
+            freeaddrinfo(local_res);
+            freeaddrinfo(server_res);
+            errno = saved_errno;
             return -1;
-	}
+        }
         freeaddrinfo(local_res);
     }
     /* No local name, but --cport given */
     else if (local_port) {
-	size_t addrlen;
-	struct sockaddr_storage lcl;
+        size_t addrlen;
+        struct sockaddr_storage lcl;
 
-	/* IPv4 */
-	if (server_res->ai_family == AF_INET) {
-	    struct sockaddr_in *lcladdr = (struct sockaddr_in *) &lcl;
-	    lcladdr->sin_family = AF_INET;
-	    lcladdr->sin_port = htons(local_port);
-	    lcladdr->sin_addr.s_addr = INADDR_ANY;
-	    addrlen = sizeof(struct sockaddr_in);
-	}
-	/* IPv6 */
-	else if (server_res->ai_family == AF_INET6) {
-	    struct sockaddr_in6 *lcladdr = (struct sockaddr_in6 *) &lcl;
-	    lcladdr->sin6_family = AF_INET6;
-	    lcladdr->sin6_port = htons(local_port);
-	    lcladdr->sin6_addr = in6addr_any;
-	    addrlen = sizeof(struct sockaddr_in6);
-	}
-	/* Unknown protocol */
-	else {
-	    errno = EAFNOSUPPORT;
+        /* IPv4 */
+        if (server_res->ai_family == AF_INET) {
+            struct sockaddr_in *lcladdr = (struct sockaddr_in *) &lcl;
+            lcladdr->sin_family = AF_INET;
+            lcladdr->sin_port = htons(local_port);
+            lcladdr->sin_addr.s_addr = INADDR_ANY;
+            addrlen = sizeof(struct sockaddr_in);
+        }
+        /* IPv6 */
+        else if (server_res->ai_family == AF_INET6) {
+            struct sockaddr_in6 *lcladdr = (struct sockaddr_in6 *) &lcl;
+            lcladdr->sin6_family = AF_INET6;
+            lcladdr->sin6_port = htons(local_port);
+            lcladdr->sin6_addr = in6addr_any;
+            addrlen = sizeof(struct sockaddr_in6);
+        }
+        /* Unknown protocol */
+        else {
+            errno = EAFNOSUPPORT;
             return -1;
-	}
+        }
 
         if (bind(s, (struct sockaddr *) &lcl, addrlen) < 0) {
-	    saved_errno = errno;
-	    close(s);
-	    freeaddrinfo(server_res);
-	    errno = saved_errno;
+            saved_errno = errno;
+            close(s);
+            freeaddrinfo(server_res);
+            errno = saved_errno;
             return -1;
         }
     }
 
     ((struct sockaddr_in *) server_res->ai_addr)->sin_port = htons(port);
     if (timeout_connect(s, (struct sockaddr *) server_res->ai_addr, server_res->ai_addrlen, timeout) < 0 && errno != EINPROGRESS) {
-	saved_errno = errno;
-	close(s);
-	freeaddrinfo(server_res);
-	errno = saved_errno;
+        saved_errno = errno;
+        close(s);
+        freeaddrinfo(server_res);
+        errno = saved_errno;
         return -1;
     }
 
@@ -216,7 +216,7 @@ netdial(int domain, int proto, char *local, int local_port, char *server, int po
 
 /***************************************************************/
 
-int
+    int
 netannounce(int domain, int proto, char *local, int port)
 {
     struct addrinfo hints, *res;
@@ -225,7 +225,7 @@ netannounce(int domain, int proto, char *local, int port)
 
     snprintf(portstr, 6, "%d", port);
     memset(&hints, 0, sizeof(hints));
-    /* 
+    /*
      * If binding to the wildcard address with no explicit address
      * family specified, then force us to get an AF_INET6 socket.  On
      * CentOS 6 and MacOS, getaddrinfo(3) with AF_UNSPEC in ai_family,
@@ -238,30 +238,30 @@ netannounce(int domain, int proto, char *local, int port)
      * result structure is set to AF_INET6.
      */
     if (domain == AF_UNSPEC && !local) {
-	hints.ai_family = AF_INET6;
+        hints.ai_family = AF_INET6;
     }
     else {
-	hints.ai_family = domain;
+        hints.ai_family = domain;
     }
     hints.ai_socktype = proto;
     hints.ai_flags = AI_PASSIVE;
     if ((gerror = getaddrinfo(local, portstr, &hints, &res)) != 0)
-        return -1; 
+        return -1;
 
     s = socket(res->ai_family, proto, 0);
     if (s < 0) {
-	freeaddrinfo(res);
+        freeaddrinfo(res);
         return -1;
     }
 
     opt = 1;
-    if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, 
-		   (char *) &opt, sizeof(opt)) < 0) {
-	saved_errno = errno;
-	close(s);
-	freeaddrinfo(res);
-	errno = saved_errno;
-	return -1;
+    if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
+                (char *) &opt, sizeof(opt)) < 0) {
+        saved_errno = errno;
+        close(s);
+        freeaddrinfo(res);
+        errno = saved_errno;
+        return -1;
     }
     /*
      * If we got an IPv6 socket, figure out if it should accept IPv4
@@ -273,36 +273,36 @@ netannounce(int domain, int proto, char *local, int port)
      */
 #if defined(IPV6_V6ONLY) && !defined(__OpenBSD__)
     if (res->ai_family == AF_INET6 && (domain == AF_UNSPEC || domain == AF_INET6)) {
-	if (domain == AF_UNSPEC)
-	    opt = 0;
-	else
-	    opt = 1;
-	if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, 
-		       (char *) &opt, sizeof(opt)) < 0) {
-	    saved_errno = errno;
-	    close(s);
-	    freeaddrinfo(res);
-	    errno = saved_errno;
-	    return -1;
-	}
+        if (domain == AF_UNSPEC)
+            opt = 0;
+        else
+            opt = 1;
+        if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY,
+                    (char *) &opt, sizeof(opt)) < 0) {
+            saved_errno = errno;
+            close(s);
+            freeaddrinfo(res);
+            errno = saved_errno;
+            return -1;
+        }
     }
 #endif /* IPV6_V6ONLY */
 
     if (bind(s, (struct sockaddr *) res->ai_addr, res->ai_addrlen) < 0) {
         saved_errno = errno;
         close(s);
-	freeaddrinfo(res);
+        freeaddrinfo(res);
         errno = saved_errno;
         return -1;
     }
 
     freeaddrinfo(res);
-    
+
     if (proto == SOCK_STREAM) {
         if (listen(s, INT_MAX) < 0) {
-	    saved_errno = errno;
-	    close(s);
-	    errno = saved_errno;
+            saved_errno = errno;
+            close(s);
+            errno = saved_errno;
             return -1;
         }
     }
@@ -315,7 +315,7 @@ netannounce(int domain, int proto, char *local, int port)
 /* reads 'count' bytes from a socket  */
 /********************************************************************/
 
-int
+    int
 Nread(int fd, char *buf, size_t count, int prot)
 {
     register ssize_t r;
@@ -342,39 +342,39 @@ Nread(int fd, char *buf, size_t count, int prot)
  *                      N W R I T E
  */
 
-int
+    int
 Nwrite(int fd, const char *buf, size_t count, int prot)
 {
     register ssize_t r;
     register size_t nleft = count;
 
     while (nleft > 0) {
-	r = write(fd, buf, nleft);
-	if (r < 0) {
-	    switch (errno) {
-		case EINTR:
-		case EAGAIN:
+        r = write(fd, buf, nleft);
+        if (r < 0) {
+            switch (errno) {
+                case EINTR:
+                case EAGAIN:
 #if (EAGAIN != EWOULDBLOCK)
-		case EWOULDBLOCK:
+                case EWOULDBLOCK:
 #endif
-		return count - nleft;
+                    return count - nleft;
 
-		case ENOBUFS:
-		return NET_SOFTERROR;
+                case ENOBUFS:
+                    return NET_SOFTERROR;
 
-		default:
-		return NET_HARDERROR;
-	    }
-	} else if (r == 0)
-	    return NET_SOFTERROR;
-	nleft -= r;
-	buf += r;
+                default:
+                    return NET_HARDERROR;
+            }
+        } else if (r == 0)
+            return NET_SOFTERROR;
+        nleft -= r;
+        buf += r;
     }
     return count;
 }
 
 
-int
+    int
 has_sendfile(void)
 {
 #if defined(HAVE_SENDFILE)
@@ -390,7 +390,7 @@ has_sendfile(void)
  *                      N S E N D F I L E
  */
 
-int
+    int
 Nsendfile(int fromfd, int tofd, const char *buf, size_t count)
 {
     off_t offset;
@@ -403,45 +403,45 @@ Nsendfile(int fromfd, int tofd, const char *buf, size_t count)
 
     nleft = count;
     while (nleft > 0) {
-	offset = count - nleft;
+        offset = count - nleft;
 #ifdef linux
-	r = sendfile(tofd, fromfd, &offset, nleft);
-	if (r > 0)
-	    nleft -= r;
+        r = sendfile(tofd, fromfd, &offset, nleft);
+        if (r > 0)
+            nleft -= r;
 #elif defined(__FreeBSD__)
-	r = sendfile(fromfd, tofd, offset, nleft, NULL, &sent, 0);
-	nleft -= sent;
+        r = sendfile(fromfd, tofd, offset, nleft, NULL, &sent, 0);
+        nleft -= sent;
 #elif defined(__APPLE__) && defined(__MACH__) && defined(MAC_OS_X_VERSION_10_6)	/* OS X */
-	sent = nleft;
-	r = sendfile(fromfd, tofd, offset, &sent, NULL, 0);
-	nleft -= sent;
+        sent = nleft;
+        r = sendfile(fromfd, tofd, offset, &sent, NULL, 0);
+        nleft -= sent;
 #else
-	/* Shouldn't happen. */
-	r = -1;
-	errno = ENOSYS;
+        /* Shouldn't happen. */
+        r = -1;
+        errno = ENOSYS;
 #endif
-	if (r < 0) {
-	    switch (errno) {
-		case EINTR:
-		case EAGAIN:
+        if (r < 0) {
+            switch (errno) {
+                case EINTR:
+                case EAGAIN:
 #if (EAGAIN != EWOULDBLOCK)
-		case EWOULDBLOCK:
+                case EWOULDBLOCK:
 #endif
-		if (count == nleft)
-		    return NET_SOFTERROR;
-		return count - nleft;
+                    if (count == nleft)
+                        return NET_SOFTERROR;
+                    return count - nleft;
 
-		case ENOBUFS:
-		case ENOMEM:
-		return NET_SOFTERROR;
+                case ENOBUFS:
+                case ENOMEM:
+                    return NET_SOFTERROR;
 
-		default:
-		return NET_HARDERROR;
-	    }
-	}
+                default:
+                    return NET_HARDERROR;
+            }
+        }
 #ifdef linux
-	else if (r == 0)
-	    return NET_SOFTERROR;
+        else if (r == 0)
+            return NET_SOFTERROR;
 #endif
     }
     return count;
@@ -453,7 +453,7 @@ Nsendfile(int fromfd, int tofd, const char *buf, size_t count)
 
 /*************************************************************************/
 
-int
+    int
 setnonblocking(int fd, int nonblocking)
 {
     int flags, newflags;
@@ -464,20 +464,20 @@ setnonblocking(int fd, int nonblocking)
         return -1;
     }
     if (nonblocking)
-	newflags = flags | (int) O_NONBLOCK;
+        newflags = flags | (int) O_NONBLOCK;
     else
-	newflags = flags & ~((int) O_NONBLOCK);
+        newflags = flags & ~((int) O_NONBLOCK);
     if (newflags != flags)
-	if (fcntl(fd, F_SETFL, newflags) < 0) {
-	    perror("fcntl(F_SETFL)");
-	    return -1;
-	}
+        if (fcntl(fd, F_SETFL, newflags) < 0) {
+            perror("fcntl(F_SETFL)");
+            return -1;
+        }
     return 0;
 }
 
 /****************************************************************************/
 
-int
+    int
 getsockdomain(int sock)
 {
     struct sockaddr_storage sa;
